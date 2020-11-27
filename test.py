@@ -6,15 +6,14 @@ from datetime import date
 import pandas as pd
 ## Processed Data Frame Import
 
-df_atp_simple = data_processing.import_process_df("./pickles/atp_simples.pkl")
+df_matches = data_processing.import_process_df("./pickles/all_matches.pkl")
+
 
 
 ## Train and Test DataFrame
 
-df_test = df_atp_simple[df_atp_simple['Year'].astype('int32')>=2019]
-df_train = df_atp_simple[df_atp_simple['Year'].astype('int32')<2019]
-#df_train = df_atp_simple
-#df_test = df_atp_simple
+df_test = df_matches[df_matches['Year'].astype('int32')>=2020]
+df_train = df_matches[df_matches['Year'].astype('int32')<2020]
 
 df_results = pd.DataFrame(columns=['Model',
             'Type',
@@ -27,31 +26,31 @@ df_results = pd.DataFrame(columns=['Model',
             'Earned on UnderD',
             'Loss on UnderD'])
 ## Odd Model 
-odd_model = models.Odd_Model(df_train,df_test,df_atp_simple)
+odd_model = models.Odd_Model(df_train,df_test,df_matches)
 #odd_model.modelPlotTest()
 odd_model.modelTrain()
 df_results = df_results.append(odd_model.modelTestVictories('all_victories'),ignore_index=True)
 df_results = df_results.append(odd_model.modelTestVictories('all_predicted'),ignore_index=True)
 
 ## Linear Model
-linear_model = models.LinearRegression_Model(df_train,df_test,df_atp_simple)
-#linear_model.modelTrain()
+linear_model = models.LinearRegression_Model(df_train,df_test,df_matches)
+linear_model.modelTrain()
 #linear_model.modelPlotTrain()
 #linear_model.modelPlotTest()
-#linear_model.modelTestVictories()
+df_results = df_results.append(linear_model.modelTestVictories('all_predicted'),ignore_index=True)
 
 
 ## Logistic Model
-logistic_model = models.LogisiticRegression_Model(df_train,df_test,df_atp_simple)
-#logistic_model.modelTrain()
+logistic_model = models.LogisiticRegression_Model(df_train,df_test,df_matches)
+logistic_model.modelTrain()
 #logistic_model.modelPlotBookies()
 #linear_model.modelPlotTrain()
 #linear_model.modelPlotTest()
-#linear_model.modelTestVictories()
+df_results = df_results.append(logistic_model.modelTestVictories('all_predicted'),ignore_index=True)
 
 
 ## Polynomial Model
-polynomial_model = models.PolynomialRegression_Model(df_train,df_test,df_atp_simple,4)
+polynomial_model = models.PolynomialRegression_Model(df_train,df_test,df_matches,4)
 polynomial_model.modelTrain()
 #polynomial_model.modelPlotBookies()
 #polynomial_model.modelPlotTrain()

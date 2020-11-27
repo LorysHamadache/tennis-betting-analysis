@@ -70,8 +70,8 @@ class Model():
         
         x = pd.Series(np.linspace(1,3.5,100))
 
-        x_real = self.plot_test_data['favorite_odd']
-        y_real = self.plot_test_data['probability']
+        x_real = self.plot_train_data['favorite_odd']
+        y_real = self.plot_train_data['probability']
 
         plt.plot(x_real, y_real,'x',label = 'Frequency By Odd')
         plt.plot(x,self.modelFunction(x), label = self.model_name)
@@ -79,6 +79,7 @@ class Model():
         plot_title = "Model: " + self.model_name + "  vs BookMakers"
         plt.title(plot_title)
         plt.legend()
+        plt.ylim(0, 1.01)
         plt.show()
 
     def modelTestVictories(self, strategy):
@@ -94,7 +95,7 @@ class Model():
             x_test = self.test_data['favorite_odd']
             y_test = self.test_data['favorite_won']
             y_predict = self.modelFunction(x_test)
-            y_predict = pd.Series((y_predict== y_predict).astype(int), index = y_test.index)
+            y_predict = pd.Series(np.ones(len(x_test)).astype(int), index = y_test.index)
             
         elif (strategy == 'all_miss_estimate'):
             x_test = self.test_data['favorite_odd']
@@ -115,17 +116,25 @@ class Model():
             y_test = self.test_data['favorite_won']
             y_model = self.modelFunction(x_test)
             y_odds = x_test.apply(lambda x:1/x)
-            condition  = (y_model  >= y_odds -0.02) 
+            condition  = (y_model  >= y_odds -0.05) 
             y_predict = pd.Series(condition.astype(int), index = y_test.index)
             y_predict = y_predict[y_predict == 0]
+        elif (strategy == 'selfmade_hardcoded'):
+            x_test = self.test_data['favorite_odd']
+            y_test = self.test_data['favorite_won']
+            y_model = self.modelFunction(x_test)
+            y_odds = x_test.apply(lambda x:1/x)
+            condition  = (x_test  >= 1.45) 
+            y_predict = pd.Series(condition.astype(int), index = y_test.index)
+            y_predict = y_predict[y_predict == 1]
         
 
         self.test_data['Predicted'] = y_predict
 
-        earned_money_favorite = self.test_data.query('favorite_won == 1 & Predicted ==1')['favorite_odd'].sum()
-        earned_money_underdog = self.test_data.query('favorite_won == 0 & Predicted ==0')['nonfavorite_odd'].sum()
-        loss_money_favorite = len(self.test_data.query('favorite_won == 1 & Predicted ==0').index)
-        loss_money_underdog = len(self.test_data.query('favorite_won == 0 & Predicted ==1').index)
+        earned_money_favorite = self.test_data.query('favorite_won == 1 & Predicted ==1')['favorite_odd'].sum() - len(self.test_data.query('favorite_won == 1 & Predicted ==1')['favorite_odd'])
+        earned_money_underdog = self.test_data.query('favorite_won == 0 & Predicted ==0')['nonfavorite_odd'].sum() - len(self.test_data.query('favorite_won == 0 & Predicted ==0')['nonfavorite_odd'])
+        loss_money_underdog= len(self.test_data.query('favorite_won == 1 & Predicted ==0').index)
+        loss_money_favorite = len(self.test_data.query('favorite_won == 0 & Predicted ==1').index)
 
         total = earned_money_favorite + earned_money_underdog - loss_money_favorite -loss_money_underdog
 
